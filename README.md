@@ -65,3 +65,12 @@ look back further than the first page of Movie results.
 
 By default it will scrape 50 pages of output, and will stop if it gets to a 
 movie from 2007, these settings can also be changed in torrentscrape-yifi.
+
+
+CREDITS
+=======
+
+The start to these scripts came from XMAGP, which I used as a base to create 
+these scripts. The original project can be found at:
+
+https://gitorious.org/xmagp/xmagp/source/1aa903f1e38006f43efcd674083a4683d2383cdb:
