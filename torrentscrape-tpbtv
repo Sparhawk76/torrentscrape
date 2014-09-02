@@ -1,0 +1,28 @@
+#!/bin/bash
+
+STYPE="TV"
+
+source $(dirname $(realpath "${0}"))/torrentscrape-core
+
+SHOW="${1}"
+WANTED="${2}"
+UNWANTED="${3}"
+URL="${4}"
+
+parse() {
+    SHOW="${1}"
+    WANTED="${2}"
+    UNWANTED="${3}"
+    webget "${4}" | gunzip | grep "magnet:?" | egrep "$WANTED" | egrep -v "$UNWANTED" > "${TMP}"
+
+    while read MAGNETS; do
+        MAGNET=`echo "$MAGNETS" | cut -f 2 -d '"'`
+        $(scrape_series "${MAGNET}" "${SHOW}")
+
+    done < "${TMP}"
+}
+
+parse "${SHOW}" "${WANTED}" "${UNWANTED}" "${URL}"
+
+[[ -f "${TMP}" ]] && rm "${TMP}"
+

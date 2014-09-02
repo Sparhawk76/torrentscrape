@@ -1,0 +1,57 @@
+#!/bin/bash
+
+source $(dirname $(realpath "${0}"))/torrentscrape-core
+
+BASE="$(dirname $(realpath "${0}"))"
+
+show_help() {
+    echo Usage ${0} [TV] [Movies] [Anime] [update]
+}
+
+if [[ $# == 0 ]]; then
+    show_help
+fi
+
+if [[ ! -f ${LIST} ]]; then
+    echoerror "File not found - ${LIST}"
+    exit -1
+fi
+
+while [[ $# > 0 ]]; do
+    case $1 in
+        help|--help|-h)
+            show_help
+            shift
+            ;; 
+        tv|TV|Tv)
+            #DO STUFF
+#            echoerror Processing TV
+            grep TV ${LIST} | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
+            process_list "${TMP}.list"
+            shift
+            ;; 
+        movies|Movies|MOVIES)
+            #DO STUFF
+#            echoerror Processing Movies
+            grep Movies ${LIST} | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
+            process_list ${TMP}.list
+            shift
+            ;; 
+        anime|Anime)
+            #DO STUFF
+#            echoerror Processing Anime
+            grep Anime ${LIST} | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
+            process_list ${TMP}.list
+            shift
+            ;; 
+        Update|update|UPDATE)
+            xbmc-send -a "UpdateLibrary(video)"
+            shift
+            ;; 
+        *)
+            show_help
+            ;;
+    esac
+#    shift
+done
+[[ -f "${TMP}.list" ]] && rm "${TMP}.list"

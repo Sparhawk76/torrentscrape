@@ -1,0 +1,169 @@
+#!/bin/bash
+
+PARSER="$(realpath "${0}")"
+PARSER="${PARSER##*-}"
+
+BADMAGNETS="${HOME}/.badmagnets"
+
+#DEST="${HOME}/TEST/${STYPE}"
+DEST="${HOME}/Videos/${STYPE}"
+
+LIST="${HOME}/.config/torrentscrape.list"
+
+TMP="/tmp/torrentscrape-$(date +%y%m%d%H%M%N)"
+
+urlencode() {
+    echo -n "${1}" | sed '
+s:%:%25:g
+s: :%20:g
+s:<:%3C:g
+s:>:%3E:g
+s:#:%23:g
+s:{:%7B:g
+s:}:%7D:g
+s:|:%7C:g
+s:\\:%5C:g
+s:\^:%5E:g
+s:~:%7E:g
+s:\[:%5B:g
+s:\]:%5D:g
+s:`:%60:g
+s:;:%3B:g
+s:/:%2F:g
+s:?:%3F:g
+s^:^%3A^g
+s:@:%40:g
+s:=:%3D:g
+s:&:%26:g
+s:\$:%24:g
+s:\!:%21:g
+s:\*:%2A:g
+s:\+:%2B:g
+'
+}
+
+webget() {
+    wget -q -O- "${1}"
+    if (( $? )); then
+        echoerror "Fail downloading from ${1}"
+        exit -1
+    fi
+}
+
+scrape_series() {
+    MAGNET="${1}"
+    TITLE="${2}"
+    URLMAG="$(urlencode ${MAGNET})"
+    grep "$URLMAG" "$BADMAGNETS"/* > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        break
+    fi
+    echo $MAGNET | grep "[0123456789][x][0123456789][0123456789]" > /dev/null 2>&1
+    if [ $? -eq 0 ]
+    then
+        EPID=`echo "$MAGNET" | cut -f 3 -d '=' | sed 's/\%[0-9A-F][0-9A-F]/+/g' | sed 's/[\.\+]/\n/g' | grep "[0123456789]x[0123456789][0123456789]"`
+        SEASON=`echo $EPID | cut -f 1 -d 'x'`
+        EP=`echo $EPID | cut -f 2 -d 'x'`
+        EPISODE="S0"$SEASON"E"$EP
+    else
+        echo $MAGNET | grep "[sS][0123456789][0123456789][eE][0123456789][0123456789]" > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            EPISODE=`echo "$MAGNET" | cut -f 3 -d '=' | sed 's/\%[0-9A-F][0-9A-F]/+/g' | sed 's/[\.\+]/\n/g' | grep "[sS][0123456789][0123456789][eE][0123456789][0123456789]" | sed 's/s/S/' | sed 's/e/E/'`
+        else
+            TITLEMOD=`echo ${TITLE} | sed 's/\\ /\./g'`
+            EPTITLE=`echo "$MAGNET" | sed 's/.*dn=//' | sed s/$TITLEMOD\.// | sed 's/\&tr.*//' | sed 's/[\.\+]/ /g' | sed 's/720p.*//' | sed 's/HDTV.*//' | sed 's/[xX]264.*//' | sed 's/[[:blank:]]*$//'`
+            EPISODE="XTRA $EPTITLE"
+        fi
+    fi
+
+    if [ "$EPISODE" ]; then
+        SDEST="${DEST}/${TITLE}"
+        [[ -d "${SDEST}" ]] || mkdir -p "${SDEST}"
+        FILE="${SDEST}/${TITLE} ${EPISODE}.strm"
+        if [ ! -f "${FILE}" ]
+        then
+            echo "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})" > "${FILE}"
+        fi
+    fi
+}
+
+process_list() {
+            LISTFILE="${1}"
+            while read STYPE MODULE SHOW WANTED UNWANTED URL; do
+                if [[ -x "${BASE}/torrentscrape-$MODULE" ]]; then
+                    ${BASE}/torrentscrape-$MODULE "$SHOW" "$WANTED" "$UNWANTED" "$URL"
+                fi
+            done < ${LISTFILE}
+}
+
+get_tmdb_rating() {
+    TITLE="${1}"
+    YEAR="${2}"
+    webget "http://api.themoviedb.org/3/search/movie?api_key=57983e31fb435df4df77afb854740ea9&query=$TITLE&year=$YEAR" > ${TMP}TMDB
+    RESULTS=`cat ${TMP}TMDB | sed 's/.*total_results"://' | cut -f1 -d'}'`
+    if [ $RESULTS -eq 0 ]; then
+        RATING=0
+    else
+        if [ $RESULTS -eq 1 ]; then #Result can be trusted, skip original title check
+            RATING=`cat ${TMP}TMDB | sed 's/},{/\n/g' | sed 's/.*id"://' | sed 's/,/\n/g' | grep vote_average | cut -f2 -d':' | cut -f1 -d'.'`
+        else
+            RATING=`cat ${TMP}TMDB | sed 's/},{/\n/g' | grep "original_title\":\"$TITLE\"" | sed 's/.*id"://' | sed 's/,/\n/g' | grep vote_average | cut -f2 -d':' | cut -f1 -d'.'`
+        fi
+    fi
+
+    re='^[0-9]+$'
+    if [ -z "$RATING" ]; then 
+        echoerror "FAILURE: $TITLE $YEAR   ### check /tmp/scrape.fails"
+	echo "FAILURE: $TITLE $YEAR" >> /tmp/scrape.fails
+        cat ${TMP}TMDB >> /tmp/scrape.fails
+        RATING=0
+    fi
+    if  ! [[ "$RATING" =~ $re ]]; then 
+        echoerror "FAILURE: $TITLE $YEAR   ### check /tmp/scrape.fails"
+	echo "FAILURE: $TITLE $YEAR" >> /tmp/scrape.fails
+        cat ${TMP}TMDB >> /tmp/scrape.fails
+        RATING=0
+    fi
+    echo $RATING
+}
+
+
+TITLECOLOR="\e[0;33m"
+SERIECOLOR="\e[1;35m"
+ERRORCOLOR="\e[1;31m"
+RESETCOLOR="\e[0m"
+
+
+
+echotitle() {
+    case ${TERM} in
+    xterm*|rxvt*)
+        echo -e "${TITLECOLOR}${*}${RESETCOLOR}"
+        ;;
+    *)
+        echo "${1}"
+        ;;
+    esac
+}
+
+echoserie() {
+    case ${TERM} in
+    xterm*|rxvt*)
+        echo -e "${SERIECOLOR}${*}${RESETCOLOR}"
+        ;;
+    *)
+        ;;
+    esac
+}
+
+echoerror() {
+    case ${TERM} in
+    xterm*|rxvt*)
+        echo -e "${ERRORCOLOR}${*}${RESETCOLOR}" >&2
+        ;;
+    *)
+        echo "${*}" >&2
+        ;;
+    esac
+}

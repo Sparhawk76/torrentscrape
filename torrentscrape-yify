@@ -1,0 +1,71 @@
+#!/bin/bash
+
+STYPE="Movies"
+
+SHOW="${1}"
+WANTED="${2}"
+UNWANTED="${3}"
+URL="${4}"
+
+QUALITY=`echo $URL | cut -f 6 -d "/"`
+
+# Change MAXPAGES after first full scrape to a lower value (Maximum of 2 suggested)
+MAXPAGES=50
+MAXAGE=2008
+
+MINRATING=6
+
+source  $(dirname $(realpath "${0}"))/torrentscrape-core
+
+[[ -d "${DEST}" ]] || mkdir -p "${DEST}"
+
+count_pages() {
+    webget ${1} > "${TMP}"
+    sed -i '/pagWrap/!d' "${TMP}"
+    sed -i 's/></\n/g' "${TMP}"
+    PAGES=`grep Last "${TMP}" | cut -f 10 -d '/' | cut -f 1 -d '"'`
+
+    if [ $PAGES -gt $MAXPAGES ]
+    then 
+        PAGES=$MAXPAGES
+    fi
+
+    echo ${PAGES}
+}
+
+PAGES=$(count_pages  ${URL})
+
+PAGE=1
+while [[ ${PAGE} -le ${PAGES} ]]; do
+    webget "${URL}${PAGE}" | grep "View Info" | cut -f2 -d'"' > "${TMP}"
+    while read URLMOV; do 
+        MAGNET=`webget "${URLMOV}" | grep "magnet:?" | cut -f2 -d'"'`
+        TITLELEN=`echo "$URLMOV" | cut -f 5 -d '/' | sed "s/_UNRATED//" | sed "s/_EXTENDED//" | sed "s/_${QUALITY}.*/_${QUALITY}/" | sed 's/_/\n/g' | wc -l`
+        YEAR=`echo "$URLMOV" | sed "s/_UNRATED//" | sed "s/_EXTENDED//" | cut -f $[TITLELEN-1] -d '_'`
+        ISNUM='^[0-9]+$'
+        if  ! [[ "$YEAR" =~ $ISNUM ]]; then
+            break 1
+        fi
+        if [ $YEAR -lt $MAXAGE ]; then
+            break 2
+        fi
+        TITLE=`echo "$URLMOV" | cut -f 5 -d '/' | sed "s/_$YEAR.*//" | sed 's/_/ /g'`
+### Rating support not really needed as yifi has built in rating support in 
+### their searches, uncomment the lines below to enable checking TMDB for 
+### alternate rating --- this may not work and may introduce bugs.
+#        RATING=$(get_tmdb_rating  "$TITLE" "$YEAR")
+#        if [ $RATING -lt $MINRATING ]; then
+#            break 1
+#        fi
+        [[ -d "${DEST}" ]] || mkdir -p "${DEST}"
+        FILE="${DEST}/${TITLE} (${YEAR}).strm"
+        if [ ! -f "${FILE}" ]
+        then
+            echo "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})" > "${FILE}"
+            echotitle "${TITLE} (${YEAR})"
+        fi
+    done < ${TMP}
+    PAGE=$(( PAGE + 1 ))
+done
+
+[[ -f "${TMP}" ]] && rm "${TMP}"
