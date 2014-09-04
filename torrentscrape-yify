@@ -63,6 +63,16 @@ while [[ ${PAGE} -le ${PAGES} ]]; do
         then
             echo "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})" > "${FILE}"
             echotitle "${TITLE} (${YEAR})"
+        else
+            OLDFILE=`cat "${FILE}"`
+            OLDHASH=`gethash "${OLDFILE}"`
+            OLDSEEDS=`getseeds "$OLDHASH"`
+            NEWHASH=`gethash "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})"`
+            NEWSEEDS=`getseeds "$NEWHASH"`
+            if [ $NEWSEEDS -gt $OLDSEEDS ] ; then
+                echotitle "More seeds: ${TITLE} (${YEAR})"
+                echo "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})" > "${FILE}"
+            fi
         fi
     done < ${TMP}
     PAGE=$(( PAGE + 1 ))
