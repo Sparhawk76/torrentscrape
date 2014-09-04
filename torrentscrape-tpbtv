@@ -9,6 +9,18 @@ WANTED="${2}"
 UNWANTED="${3}"
 URL="${4}"
 
+MAXPAGES=10
+
+#url layout ... /search/title/page/type/quality
+#http://thepiratebay.se/search/the%20strain/1/99/208
+
+URLBASE="http://thepiratebay.se/search"
+URLSHOW=`echo $URL | cut -f 5 -d '/'`
+URLPAGE=`echo $URL | cut -f 6 -d '/'`
+URLTYPE=`echo $URL | cut -f 7 -d '/'`
+URLQUALITY=`echo $URL | cut -f 8 -d '/'`
+NEXT=0
+
 parse() {
     SHOW="${1}"
     WANTED="${2}"
@@ -24,5 +36,16 @@ parse() {
 
 parse "${SHOW}" "${WANTED}" "${UNWANTED}" "${URL}"
 
+webget "${URL}" | gunzip | grep -q 'next.gif' && NEXT=1
+
 [[ -f "${TMP}" ]] && rm "${TMP}"
+
+if [ $NEXT -eq 1 ]; then 
+    NEXTPAGE=$(($URLPAGE + 1))  
+    if [ $NEXTPAGE -lt $MAXPAGES ] ; then
+	#RERUN SCRAPER on next page 
+        ${0} "${1}" "${2}" "${3}" "$URLBASE/$URLSHOW/$NEXTPAGE/$URLTYPE/$URLQUALITY"
+    fi
+fi
+
 
