@@ -8,22 +8,28 @@ integration better.
 I am doing all development on a XBMCbuntu based install, running the up to date 
 version of XBMC, havent switched to Kodi yet. 
 
-This is a bash script, so is not designed to be run from within xbmc, but 
-instead run from a shell, or automated via crontab. It is designed to be linux 
-only, but might run within cygwin on windows. On my system, I put torrentscrape 
-in /usr/local/share/torrentscrape and made a symlink in /usr/local/bin to point 
-to the main script:
-
-ln -s /usr/local/share/torrentscrape/torrentscrape /usr/local/bin/torrentscrape
-
 Requirements
 ============
+
+Should work on any Unix based OS that has bash installed, possibility it will 
+work if run from within cygwin on windows.
 
 realpath needs to be installed, "sudo apt-get install realpath" on debian based
 systems
 
+Does not necessarily need to be run on the XBMC media center, as long as it can 
+access the files generated.
+
 Setup
 =====
+
+This is a bash script, so is not designed to be run from within xbmc, but 
+instead run from a shell, or automated via crontab. It is designed to be linux 
+only, but might run within cygwin on windows. On my system, I put torrentscrape 
+in /usr/local/share/torrentscrape/ and made a symlink in /usr/local/bin to point 
+to the main script:
+
+ln -s /usr/local/share/torrentscrape/torrentscrape /usr/local/bin/torrentscrape
 
 If you need to change where torrentscrape looks for its config files you can 
 change the settings in torrentscrape-core, from here out the guide assumes you 
