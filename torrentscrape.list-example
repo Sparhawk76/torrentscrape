@@ -1,5 +1,5 @@
 # scraper config 
-#
+# 
 #TYPE 	MODULE 	SHOW     				WANTED  	UNWANTED	MAXPAGES 	URL
 #=============================================================================================================================================================
 TV 	eztv 	Grimm 					HDTV|720p 	JUNK		1		https://eztv.it/shows/556/grimm/
@@ -7,4 +7,4 @@ TV 	eztv 	Marvels\ Agents\ of\ S.H.I.E.L.D. 	HDTV|720p 	JUNK		1		https://eztv.it
 TV 	eztv 	Game\ of\ Thrones 			HDTV|720p	JUNK 		1 		https://eztv.it/shows/481/game-of-thrones/
 TV 	eztv 	Mythbusters 				HDTV|720p	JUNK 		1 		https://eztv.it/shows/192/mythbusters/
 TV 	tpbtv 	The\ Strain 				HDTV|720p	JUNK 		5 		http://thepiratebay.se/search/the%20strain/0/99/208/
-Movies 	yify 	MOVIES 					1080p 		JUNK 		1 		https://yts.re/browse-movie/0/1080p/All/6/year/
+Movies 	yify 	MOVIES 					1080p 		JUNK 		50 		https://yts.re/browse-movie/0/1080p/All/6/year/
