@@ -79,16 +79,33 @@ s:%25:%:g
 }
 
 gethash() {
-   STRM="${1}"
-   FIRSTPASS=`urldecode ${STRM}`
-   HASH=`urldecode ${FIRSTPASS} | cut -f 1 -d '&' | cut -f 5 -d '/' | cut -f 4 -d ':'`
-   echo $HASH
+    STRM="${1}"
+    FIRSTPASS=`urldecode ${STRM}`
+    HASH=`urldecode ${FIRSTPASS} | cut -f 1 -d '&' | cut -f 5 -d '/' | cut -f 4 -d ':'`
+    echo $HASH
 }
 
 getseeds() {
-   HASH="${1}"
-#   echoerror "SEEDHASH=$HASH"
-   webget "http://bitsnoop.com/api/trackers.php?hash=$HASH" | grep -v '#' | cut -f2 -d'|' | awk '{s+=$1} END {print s}'
+    HASH="${1}"
+#    echoerror "SEEDHASH=$HASH"
+    webget "http://bitsnoop.com/api/trackers.php?hash=$HASH" | grep -v '#' | cut -f2 -d'|' | awk '{s+=$1} END {print s}'
+}
+
+checkfake() {
+    HASH="${1}"
+#    echoerror "$HASH"
+    RESULT=`webget "http://bitsnoop.com/api/fakeskan.php?hash=$HASH"`
+    if [ "$RESULT" == "ERROR" ]; then
+        sleep 1
+        RESULT=`webget "http://bitsnoop.com/api/fakeskan.php?hash=$HASH"`
+    fi
+#    echoerror "$RESULT"
+    echo "$RESULT" | egrep -q 'BAD|FAKE'
+    if [ $? -eq 0 ] ; then
+    	echo 1
+    else
+        echo 0
+    fi
 }
 
 webget() {
@@ -102,11 +119,24 @@ webget() {
 scrape_series() {
     MAGNET="${1}"
     TITLE="${2}"
+    # get the hash of the current magnet
+    NEWHASH=`gethash "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})"`
+
     URLMAG="$(urlencode ${MAGNET})"
+
     grep "$URLMAG" "$BADMAGNETS"/* > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
         break
     fi
+
+#    echoerror "$MAGNET"
+
+    FAKE=`checkfake $NEWHASH`
+    if [ $FAKE -eq 1 ]; then
+        echoerror "Fake magnet detected - skipping"
+        break
+    fi
+
     echo $MAGNET | grep "[0123456789][x][0123456789][0123456789]" > /dev/null 2>&1
     if [ $? -eq 0 ]
     then
@@ -138,7 +168,6 @@ scrape_series() {
             OLDFILE=`cat "${FILE}"`
             OLDHASH=`gethash "${OLDFILE}"`
             OLDSEEDS=`getseeds "$OLDHASH"`
-            NEWHASH=`gethash "plugin://plugin.video.xbmctorrent/play/$(urlencode ${MAGNET})"`
             NEWSEEDS=`getseeds "$NEWHASH"`
             if [ $NEWSEEDS -gt $OLDSEEDS ] ; then
                 echotitle "More seeds: ${TITLE} - ${EPISODE}"
@@ -152,7 +181,7 @@ process_list() {
             LISTFILE="${1}"
             while read STYPE MODULE SHOW WANTED UNWANTED MAXPAGES URL; do
                 if [[ -x "${BASE}/torrentscrape-$MODULE" ]]; then
-                    ${BASE}/torrentscrape-$MODULE "$SHOW" "$WANTED" "$UNWANTED" "$MAXPAGES" "$URL" &
+                    ${BASE}/torrentscrape-$MODULE "$SHOW" "$WANTED" "$UNWANTED" "$MAXPAGES" "$URL" # &   #removed so as not to trip ratelimiting on bitsnoop.com
                 fi
             done < ${LISTFILE}
 }
