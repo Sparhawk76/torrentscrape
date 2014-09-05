@@ -1,14 +1,20 @@
 #!/bin/bash
 
+#DEFAULT SETTINGS
+# BADMAGNETS should point to a directory
+BADMAGNETS="${HOME}/.badmagnets"
+
+# The Directory where you want the STRM files created, subdirectorys will be created by plugin type [Movies or TV]
+DESTDIR="${HOME}/Videos/"
+LIST="${HOME}/.config/torrentscrape.list"
+
+
+# No changes should be needed after this point
+
 PARSER="$(realpath "${0}")"
 PARSER="${PARSER##*-}"
 
-BADMAGNETS="${HOME}/.badmagnets"
-
-#DEST="${HOME}/TEST/${STYPE}"
-DEST="${HOME}/Videos/${STYPE}"
-
-LIST="${HOME}/.config/torrentscrape.list"
+DEST="${DESTDIR}/${STYPE}"
 
 TMP="/tmp/torrentscrape-$(date +%y%m%d%H%M%N)"
 
@@ -144,9 +150,9 @@ scrape_series() {
 
 process_list() {
             LISTFILE="${1}"
-            while read STYPE MODULE SHOW WANTED UNWANTED URL; do
+            while read STYPE MODULE SHOW WANTED UNWANTED MAXPAGES URL; do
                 if [[ -x "${BASE}/torrentscrape-$MODULE" ]]; then
-                    ${BASE}/torrentscrape-$MODULE "$SHOW" "$WANTED" "$UNWANTED" "$URL"
+                    ${BASE}/torrentscrape-$MODULE "$SHOW" "$WANTED" "$UNWANTED" "$MAXPAGES" "$URL" &
                 fi
             done < ${LISTFILE}
 }

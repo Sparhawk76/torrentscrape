@@ -5,12 +5,13 @@ STYPE="Movies"
 SHOW="${1}"
 WANTED="${2}"
 UNWANTED="${3}"
-URL="${4}"
+MAXPAGES="${4}"
+URL="${5}"
 
 QUALITY=`echo $URL | cut -f 6 -d "/"`
 
 # Change MAXPAGES after first full scrape to a lower value (Maximum of 2 suggested)
-MAXPAGES=50
+# MAXPAGES=50
 MAXAGE=2008
 
 MINRATING=6

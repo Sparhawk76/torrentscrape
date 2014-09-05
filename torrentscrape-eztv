@@ -7,7 +7,8 @@ source $(dirname $(realpath "${0}"))/torrentscrape-core
 SHOW="${1}"
 WANTED="${2}"
 UNWANTED="${3}"
-URL="${4}"
+MAXPAGES="${4}" # not needed in this module
+URL="${5}"
 
 parse() {
     SHOW="${1}"
@@ -18,19 +19,12 @@ parse() {
     while read MAGNETS; do
 
         MAGNET=`echo "$MAGNETS" | cut -f 2 -d '>' | cut -f 2 -d '"'`
-        $(scrape_series "${MAGNET}" "${SHOW}")
+#        $(scrape_series "${MAGNET}" "${SHOW}")
+        scrape_series "${MAGNET}" "${SHOW}"
 
     done < "${TMP}"
 }
 
-#if [[ ! -f ${LIST} ]]; then
-#    echoerror "File not found - ${LIST}"
-#    exit -1
-#fi
-
-#while read TITLE WANTED UNWANTED QUERY; do
-#    echoserie "${SERIE##*/}"
-    parse "${SHOW}" "${WANTED}" "${UNWANTED}" "${URL}"
-#done < ${LIST}
+parse "${SHOW}" "${WANTED}" "${UNWANTED}" "${URL}"
 
 [[ -f "${TMP}" ]] && rm "${TMP}"

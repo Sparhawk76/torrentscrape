@@ -7,9 +7,8 @@ source $(dirname $(realpath "${0}"))/torrentscrape-core
 SHOW="${1}"
 WANTED="${2}"
 UNWANTED="${3}"
-URL="${4}"
-
-MAXPAGES=10
+MAXPAGES="${4}"
+URL="${5}"
 
 #url layout ... /search/title/page/type/quality
 #http://thepiratebay.se/search/the%20strain/1/99/208
@@ -29,7 +28,7 @@ parse() {
 
     while read MAGNETS; do
         MAGNET=`echo "$MAGNETS" | cut -f 2 -d '"'`
-        $(scrape_series "${MAGNET}" "${SHOW}")
+        scrape_series "${MAGNET}" "${SHOW}"
 
     done < "${TMP}"
 }
@@ -42,9 +41,10 @@ webget "${URL}" | gunzip | grep -q 'next.gif' && NEXT=1
 
 if [ $NEXT -eq 1 ]; then 
     NEXTPAGE=$(($URLPAGE + 1))  
+#    echoerror "$NEXTPAGE $MAXPAGES"
     if [ $NEXTPAGE -lt $MAXPAGES ] ; then
 	#RERUN SCRAPER on next page 
-        ${0} "${1}" "${2}" "${3}" "$URLBASE/$URLSHOW/$NEXTPAGE/$URLTYPE/$URLQUALITY"
+        ${0} "${1}" "${2}" "${3}" "${4}" "$URLBASE/$URLSHOW/$NEXTPAGE/$URLTYPE/$URLQUALITY"
     fi
 fi
 

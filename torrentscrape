@@ -26,21 +26,21 @@ while [[ $# > 0 ]]; do
         tv|TV|Tv)
             #DO STUFF
 #            echoerror Processing TV
-            grep TV ${LIST} | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
+            grep TV ${LIST} | sed 's/\s\+/ /g' | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
             process_list "${TMP}.list"
             shift
             ;; 
         movies|Movies|MOVIES)
             #DO STUFF
 #            echoerror Processing Movies
-            grep Movies ${LIST} | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
+            grep Movies ${LIST} | sed 's/\s\+/ /g' | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
             process_list ${TMP}.list
             shift
             ;; 
         anime|Anime)
             #DO STUFF
 #            echoerror Processing Anime
-            grep Anime ${LIST} | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
+            grep Anime ${LIST} | sed 's/\s\+/ /g' | sed '/^#/ d' | sed '/^$/d' > ${TMP}.list
             process_list ${TMP}.list
             shift
             ;; 

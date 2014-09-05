@@ -42,12 +42,12 @@ An example torrentscrape.list is posted below. Fields are separated by a
 # scraper config
 #
 #TYPE MODULE TITLE     WANTED  UNWANTED URL
-TV eztv Grimm HDTV|720p JUNK https://eztv.it/shows/556/grimm/
-TV eztv Marvels\ Agents\ of\ S.H.I.E.L.D. HDTV|720p JUNK https://eztv.it/shows/878/marvels-agents-of-shield/
-TV eztv Game\ of\ Thrones HDTV JUNK https://eztv.it/shows/481/game-of-thrones/
-TV eztv Mythbusters HDTV JUNK https://eztv.it/shows/192/mythbusters/
-TV tpbtv The\ Strain 1080p JUNK http://thepiratebay.se/search/the%20strain/0/99/208/
-Movies yify MOVIES 1080p JUNK https://yts.re/browse-movie/0/1080p/All/6/year/
+TV eztv Grimm HDTV|720p JUNK 1 https://eztv.it/shows/556/grimm/
+TV eztv Marvels\ Agents\ of\ S.H.I.E.L.D. HDTV|720p JUNK 1 https://eztv.it/shows/878/marvels-agents-of-shield/
+TV eztv Game\ of\ Thrones HDTV JUNK 1 https://eztv.it/shows/481/game-of-thrones/
+TV eztv Mythbusters HDTV JUNK 1 https://eztv.it/shows/192/mythbusters/
+TV tpbtv The\ Strain 1080p JUNK 5 http://thepiratebay.se/search/the%20strain/0/99/208/
+Movies yify MOVIES 1080p JUNK 10 https://yts.re/browse-movie/0/1080p/All/6/year/
 
 
 
