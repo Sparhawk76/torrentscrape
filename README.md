@@ -5,6 +5,17 @@ Torrentscrape is a set of Bash scripts that scrape public trackers and
 generate .strm files for use with the XBMCTorrent plugin to support library 
 integration better.
 
+I am doing all development on a XBMCbuntu based install, running the up to date 
+version of XBMC, havent switched to Kodi yet. 
+
+This is a bash script, so is not designed to be run from within xbmc, but 
+instead run from a shell, or automated via crontab. It is designed to be linux 
+only, but might run within cygwin on windows. On my system, I put torrentscrape 
+in /usr/local/share/torrentscrape and made a symlink in /usr/local/bin to point 
+to the main script:
+
+ln -s /usr/local/share/torrentscrape/torrentscrape /usr/local/bin/torrentscrape
+
 Requirements
 ============
 
